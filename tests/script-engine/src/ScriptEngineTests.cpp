@@ -45,15 +45,6 @@ void ScriptEngineTests::initTestCase() {
     DependencyManager::set<ScriptInitializers>();
 
 
-
-    auto scriptEngines = DependencyManager::get<ScriptEngines>().data();
-
-    scriptEngines->registerScriptInitializer([this](ScriptManagerPointer manager) {
-        qDebug() << "Running script initializer";
-
-    });
-
-
     QSharedPointer<ScriptEngines> ac = DependencyManager::get<ScriptEngines>();
     QVERIFY(!ac.isNull());
 

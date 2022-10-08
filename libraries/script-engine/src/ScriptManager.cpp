@@ -189,11 +189,11 @@ static ScriptValue debugPrint(ScriptContext* context, ScriptEngine* engine) {
         scriptManager->print(message);
 
         // send the message to debug log
-        qCDebug(scriptengine_script, "[%s] %s", qUtf8Printable(location), qUtf8Printable(message));
+        qCDebug(scriptengine_script, "[%s]! %s", qUtf8Printable(location), qUtf8Printable(message));
     } else {
         scriptManager->print(message);
         // prefix the script engine name to help disambiguate messages in the main debug log
-        qCDebug(scriptengine_script, "[%s] %s", qUtf8Printable(scriptManager->getFilename()), qUtf8Printable(message));
+        qCDebug(scriptengine_script, "[%s]! %s", qUtf8Printable(scriptManager->getFilename()), qUtf8Printable(message));
     }
 
     return ScriptValue();
@@ -296,10 +296,10 @@ ScriptManager::ScriptManager(Context context, const QString& scriptContents, con
             }
         });
     }
-    
+
     if (!_areMetaTypesInitialized) {
         initMetaTypes();
-    }    
+    }
 }
 
 QString ScriptManager::getTypeAsString() const {
@@ -844,7 +844,7 @@ void ScriptManager::run() {
 
     {
         PROFILE_RANGE(script, _fileNameString);
-        _engine->evaluate(_scriptContents, _fileNameString);
+        _returnValue = _engine->evaluate(_scriptContents, _fileNameString);
         _engine->maybeEmitUncaughtException(__FUNCTION__);
     }
 #ifdef _WIN32

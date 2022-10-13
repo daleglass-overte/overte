@@ -676,7 +676,7 @@ public:
      *
      * @return ScriptValue
      */
-    ScriptValue getReturnValue() const { return _scriptValue; }
+    ScriptValue getReturnValue() const { return _returnValue; }
 
     /**jsdoc
      * Gets the URL for an asset in an external resource bucket. (The location where the bucket is hosted may change over time

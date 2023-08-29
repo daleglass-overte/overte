@@ -21,9 +21,11 @@
 
 #include "ScriptContext.h"
 #include "ScriptValue.h"
+#include "shared/MiniPromises.h"
 
 class ScriptEngine;
 using ScriptEnginePointer = std::shared_ptr<ScriptEngine>;
+using Promise = MiniPromise::Promise;
 
 /// [ScriptInterface] Provides an engine-independent interface for QScriptable
 class Scriptable {
@@ -35,6 +37,14 @@ public:
     static inline ScriptValue argument(int index);
 
     static void setContext(ScriptContext* context);
+
+protected:
+    ScriptValue jsBindCallback(const ScriptValue& scope, const ScriptValue& callback = ScriptValue());
+    Promise jsPromiseReady(Promise promise, const ScriptValue& scope, const ScriptValue& callback = ScriptValue());
+
+    void jsCallback(const ScriptValue& handler, const ScriptValue& error, const QVariantMap& result);
+    void jsCallback(const ScriptValue& handler, const ScriptValue& error, const ScriptValue& result);
+    bool jsVerify(bool condition, const QString& error);
 };
 
 ScriptEnginePointer Scriptable::engine() {

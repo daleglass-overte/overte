@@ -12,7 +12,7 @@
 
 #include "WebDAVClass.h"
 #include "ScriptEngine.h"
-#include "MiniPromises.h"
+#include "shared/MiniPromises.h"
 
 WebDAVClass::WebDAVClass(ScriptEngine* engine) :
     _engine(engine) {
@@ -36,19 +36,19 @@ void WebDAVClass::setURL(const QUrl &url) {
 
 void WebDAVClass::get(const QString &path, const ScriptValue &callback) {
     auto handler = jsBindCallback(thisObject(), callback);
-    QNetworkReply *reply = _webdav.put(path, data.toUtf8());
+    QNetworkReply *reply = _webdav.get(path);
 
 
     Promise deferred = makePromise(__FUNCTION__);
-    connect(reply, &QNetworkRequest::finished, reply, [deferred, &path]() {
+    connect(reply, &QNetworkReply::finished, reply, [deferred, &path, &reply]() {
         deferred->resolve({
-            { "path" : path },
-            { "error" : reply->error() },
-            { "data" : reply->readAll() }
-        })
+            { "path", path },
+            { "error", reply->error() },
+            { "data", reply->readAll() }
+        });
 
         reply->deleteLater();
-    })
+    });
 
     qCDebug(scriptengine)  << "GET: " << path;
 }
@@ -58,14 +58,14 @@ void WebDAVClass::put(const QString &path, const QString &data, const ScriptValu
 
 
     Promise deferred = makePromise(__FUNCTION__);
-    connect(reply, &QNetworkRequest::finished, reply, [deferred, &path]() {
+    connect(reply, &QNetworkReply::finished, reply, [deferred, &path, &reply]() {
         deferred->resolve({
-            { "path" : path },
-            { "error" : reply->error() }
-        })
+            { "path", path },
+            { "error", reply->error() }
+        });
 
         reply->deleteLater();
-    })
+    });
 
     qCDebug(scriptengine)  << "PUT: " << path;
 }

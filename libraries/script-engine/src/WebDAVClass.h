@@ -25,7 +25,7 @@
 #include <qwebdavlib/qwebdavdirparser.h>
 
 
-class WebDAVClass : public QObject {
+class WebDAVClass : public QObject, public Scriptable {
     Q_OBJECT
 public:
     WebDAVClass(ScriptEngine* engine);
@@ -49,7 +49,6 @@ signals:
 
 private:
     ScriptEngine* _engine { nullptr };
-    int64_t _max_
     QWebdav _webdav;
     QWebdavDirParser _dirparser;
 

@@ -207,61 +207,6 @@ void AssetScriptingInterface::getMapping(QString asset, const ScriptValue& callb
     });
 }
 
-bool AssetScriptingInterface::jsVerify(bool condition, const QString& error) {
-    if (condition) {
-        return true;
-    }
-    if (context()) {
-        context()->throwError(error);
-    } else {
-        qCDebug(scriptengine) << "WARNING -- jsVerify failed outside of a valid JS context: " + error;
-    }
-    return false;
-}
-
-ScriptValue AssetScriptingInterface::jsBindCallback(const ScriptValue& scope, const ScriptValue& callback) {
-    ScriptValue handler = ::makeScopedHandlerObject(scope, callback);
-    ScriptValue value = handler.property("callback");
-    if (!jsVerify(handler.isObject() && value.isFunction(),
-                 QString("jsBindCallback -- .callback is not a function (%1)").arg(value.toVariant().typeName()))) {
-        return ScriptValue();
-    }
-    return handler;
-}
-
-Promise AssetScriptingInterface::jsPromiseReady(Promise promise, const ScriptValue& scope, const ScriptValue& callback) {
-    auto handler = jsBindCallback(scope, callback);
-    if (!jsVerify(handler.isValid(), "jsPromiseReady -- invalid callback handler")) {
-        return nullptr;
-    }
-    Q_ASSERT(engine);
-    auto scriptEngine = engine();
-    return promise->ready([this, handler, scriptEngine](QString error, QVariantMap result) {
-        jsCallback(handler, scriptEngine->newValue(error), result);
-    });
-}
-
-void AssetScriptingInterface::jsCallback(const ScriptValue& handler,
-                                         const ScriptValue& error, const ScriptValue& result) {
-    Q_ASSERT(thread() == QThread::currentThread());
-    Q_ASSERT(engine);
-    //V8TODO: which kind of script context guard needs to be used here?
-    ScriptContextGuard scriptContextGuard(_scriptManager->engine()->currentContext());
-    auto errorValue = !error.toBool() ? engine()->nullValue() : error;
-    JS_VERIFY(handler.isObject() && handler.property("callback").isFunction(),
-              QString("jsCallback -- .callback is not a function (%1)")
-              .arg(handler.property("callback").toVariant().typeName()));
-    ::callScopedHandlerObject(handler, errorValue, result);
-}
-
-void AssetScriptingInterface::jsCallback(const ScriptValue& handler,
-                                         const ScriptValue& error, const QVariantMap& result) {
-    Q_ASSERT(thread() == QThread::currentThread());
-    Q_ASSERT(handler.engine());
-    auto engine = handler.engine();
-
-    jsCallback(handler, error, engine->toScriptValue(result));
-}
 
 void AssetScriptingInterface::deleteAsset(const ScriptValue& options, const ScriptValue& scope, const ScriptValue& callback) {
     jsVerify(false, "TODO: deleteAsset API");
@@ -276,10 +221,10 @@ void AssetScriptingInterface::deleteAsset(const ScriptValue& options, const Scri
  * @property {string} url - The mapped path or hash to download. May have a leading <code>"atp:"</code>.
  */
 /*@jsdoc
- * Result value returned by {@link Assets.getAsset}. 
+ * Result value returned by {@link Assets.getAsset}.
  * @typedef {object} Assets.GetResult
  * @property {number} [byteLength] - The number of bytes in the downloaded content in <code>response</code>.
- * @property {boolean} cached - <code>true</code> if the item was retrieved from the cache, <code>false</code> if it was 
+ * @property {boolean} cached - <code>true</code> if the item was retrieved from the cache, <code>false</code> if it was
  *     downloaded.
  * @property {string} [contentType] - The automatically detected MIME type of the content.
  * @property {boolean} [decompressed] - <code>true</code> if the content was decompressed, <code>false</code> if it wasn't.
@@ -288,9 +233,9 @@ void AssetScriptingInterface::deleteAsset(const ScriptValue& options, const Scri
  * @property {string} [path] - The path for the asset, if a path was requested. Otherwise, <code>undefined</code>.
  * @property {string|object|ArrayBuffer} [response] - The downloaded content.
  * @property {Assets.ResponseType} [responseType] - The type of the downloaded content in <code>response</code>.
- * @property {string} [url] - The URL of the asset requested: the path with leading <code>"atp:"</code> if a path was 
+ * @property {string} [url] - The URL of the asset requested: the path with leading <code>"atp:"</code> if a path was
  *     requested, otherwise the requested URL.
- * @property {boolean} [wasRedirected] - <code>true</code> if the downloaded data is the baked version of the asset, 
+ * @property {boolean} [wasRedirected] - <code>true</code> if the downloaded data is the baked version of the asset,
  *      <code>false</code> if it isn't baked.
  */
 void AssetScriptingInterface::getAsset(const ScriptValue& options, const ScriptValue& scope, const ScriptValue& callback) {
@@ -353,7 +298,7 @@ void AssetScriptingInterface::getAsset(const ScriptValue& options, const ScriptV
  * <p>Note: If resolving a hash, a file of that hash need not be present on the asset server for the hash to resolve.</p>
  * @typedef {object} Assets.ResolveResult
  * @property {string} [hash] - The hash of the asset.
- * @property {string} [hashURL] - The url of the asset's hash file, with leading <code>atp:</code>. 
+ * @property {string} [hashURL] - The url of the asset's hash file, with leading <code>atp:</code>.
  * @property {string} [path] - The path to the asset.
  * @property {string} [url] - The URL of the asset.
  * @property {boolean} [wasRedirected] - <code>true</code> if the resolved data is for the baked version of the asset,
@@ -415,8 +360,8 @@ namespace {
  * Content and compression options for {@link Assets.compressData}.
  * @typedef {object} Assets.CompressOptions
  * @property {string|ArrayBuffer} data - The data to compress.
- * @property {number} level - The compression level, range <code>-1</code> &ndash; <code>9</code>. <code>-1</code> means 
- *     use the default gzip compression level, <code>0</code> means no compression, and <code>9</code> means maximum 
+ * @property {number} level - The compression level, range <code>-1</code> &ndash; <code>9</code>. <code>-1</code> means
+ *     use the default gzip compression level, <code>0</code> means no compression, and <code>9</code> means maximum
  *     compression.
  */
 /*@jsdoc
@@ -441,9 +386,9 @@ void AssetScriptingInterface::compressData(const ScriptValue& options, const Scr
  * @property {boolean} [compress=false] - <code>true</code> to gzip compress the content for upload and storage,
  *     <code>false</code> to upload and store the data without gzip compression. Synonym: <code>compressed</code>.
  * @property {string|ArrayBuffer} data - The content to upload.
- * @property {string} [path] - A user-friendly path for the file in the asset server. May have a leading 
+ * @property {string} [path] - A user-friendly path for the file in the asset server. May have a leading
  *     <code>"atp:"</code>. If not specified, no path-to-hash mapping is set.
- *     <p>Note: The asset server destroys any unmapped SHA256-named file at server restart. Either set the mapping path 
+ *     <p>Note: The asset server destroys any unmapped SHA256-named file at server restart. Either set the mapping path
  *     with this property or use {@link Assets.setMapping} to set a path-to-hash mapping for the uploaded file.</p>
  */
 /*@jsdoc
@@ -509,7 +454,7 @@ void AssetScriptingInterface::putAsset(const ScriptValue& options, const ScriptV
 /*@jsdoc
  * Source for {@link Assets.queryCacheMeta}.
  * @typedef {object} Assets.QueryCacheMetaOptions
- * @property {string} url - The URL of the cached asset to get information on. Must start with <code>"atp:"</code> or 
+ * @property {string} url - The URL of the cached asset to get information on. Must start with <code>"atp:"</code> or
  *     <code>"cache:"</code>.
  */
 void AssetScriptingInterface::queryCacheMeta(const ScriptValue& options, const ScriptValue& scope, const ScriptValue& callback) {

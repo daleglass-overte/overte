@@ -13,6 +13,7 @@
 
 #include "Scriptable.h"
 #include "ScriptEngine.h"
+#include "ScriptEngineCast.h"
 
 static thread_local ScriptContext* scriptContextStore;
 #define JS_VERIFY(cond, error) { if (!this->jsVerify(cond, error)) { return; } }

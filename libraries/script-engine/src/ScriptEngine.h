@@ -476,7 +476,43 @@ ScriptEnginePointer newScriptEngine(ScriptManager* manager = nullptr);
 //   auto handler = makeScopedHandlerObject(scopeOrCallback, optionalMethodOrName);
 // And then invoke the scoped handler later per CPS conventions:
 //   auto result = callScopedHandlerObject(handler, err, result);
+
+
+/**
+ * @brief Creates a special 'scoped handler' object.
+ *
+ * Returns an object with two properties: 'scope', and 'callback'. It's to be used in callScopedHandlerObject.
+ *
+ * This implements standardized CPS callback helpers (see: http://fredkschott.com/post/2014/03/understanding-error-first-callbacks-in-node-js/)
+ *
+ * There are 3 ways of using this function:
+ *
+ * scopeOrCallback is an object, methodOrName is a string: methodOrName is looked up as a property
+ * of the object.
+ *
+ * scopeOrCallback is an object, methodOrName is a function: both used as-is.
+ *
+ * scopeOrCallback is a previously created 'scoped handler' object. Function returns a new
+ * object built from scopeOrCallback, methodOrName is ignored.
+ *
+ *
+ *
+ * @param scopeOrCallback Scope in which we'll be calling a function. This is a script or an object.
+ * @param methodOrName Method we're calling.
+ * @return ScriptValue Special 'scoped handler' object with 'scope' and 'callback' properties.
+ */
 ScriptValue makeScopedHandlerObject(const ScriptValue& scopeOrCallback, const ScriptValue& methodOrName);
+
+/**
+ * @brief Call standardized CPS callback helper
+ *
+ * @see https://en.wikipedia.org/wiki/Continuation-passing_style
+ * @see http://fredkschott.com/post/2014/03/understanding-error-first-callbacks-in-node-js/
+ * @param handler Callback function to call
+ * @param err Error object, if any
+ * @param result Callback result
+ * @return ScriptValue Return value from the callback
+ */
 ScriptValue callScopedHandlerObject(const ScriptValue& handler, const ScriptValue& err, const ScriptValue& result);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

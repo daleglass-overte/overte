@@ -25,6 +25,9 @@ ScriptEnginePointer newScriptEngine(ScriptManager* manager) {
 ScriptValue makeScopedHandlerObject(const ScriptValue& scopeOrCallback, const ScriptValue& methodOrName) {
     auto engine = scopeOrCallback.engine();
     if (!engine) {
+        // V8TODO: Does this ever happen? Should it be an error?
+        // Do we ever get a null ScriptValue here?
+        qCDebug(scriptengine) << "ScriptValue without an engine passed";
         return scopeOrCallback;
     }
     ScriptValue scope;

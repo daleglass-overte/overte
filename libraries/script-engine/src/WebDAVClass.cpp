@@ -40,13 +40,32 @@ void WebDAVClass::get(const QString &path, const ScriptValue &callback) {
 
 
     Promise deferred = makePromise(__FUNCTION__);
-    connect(reply, &QNetworkReply::finished, reply, [deferred, &path, &reply]() {
+    auto scriptEngine = engine();
+    deferred->ready([=](QString error, QVariantMap result) {
+        auto url = result.value("path").toString();
+        auto reqError = result.value("error").toString();
+        auto data = result.value("data").toString();
+        jsCallback(handler, scriptEngine->newValue(url), scriptEngine->newValue(data));
+    });
+
+    connect(reply, &QNetworkReply::readyRead, reply, [deferred, path, reply]() {
+        qCDebug(scriptengine) << "GET callback! readyRead called!";
+
+        auto error = reply->error();
+        qCDebug(scriptengine) << "Error is" << error;
+
+        auto data = reply->readAll();
+        qCDebug(scriptengine) << "Data is" << data;
+
+        qCDebug(scriptengine) << "Path is" << path;
+
         deferred->resolve({
             { "path", path },
-            { "error", reply->error() },
-            { "data", reply->readAll() }
+            { "error", error },
+            { "data", data }
         });
 
+        qCDebug(scriptengine) << "GET callback! Path" << path << ", error" << error << ", data" << data;
         reply->deleteLater();
     });
 

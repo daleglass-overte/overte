@@ -13,6 +13,8 @@
 
 #include "JSConsole.h"
 
+Q_LOGGING_CATEGORY(js_console, "overte.js-console")
+
 #include <QFuture>
 #include <QLabel>
 #include <QScrollBar>
@@ -154,8 +156,13 @@ JSConsole::JSConsole(QWidget* parent, const ScriptManagerPointer& scriptManager)
 
     QFile styleSheet(PathUtils::resourcesPath() + "styles/console.qss");
     if (styleSheet.open(QIODevice::ReadOnly)) {
+        qCDebug(js_console) << "Loaded style sheet" << PathUtils::resourcesPath() + "styles/console.qss";
         QDir::setCurrent(PathUtils::resourcesPath());
-        setStyleSheet(styleSheet.readAll());
+        QString sheet = styleSheet.readAll();
+        qDebug() << "Style sheet: " << sheet;
+        setStyleSheet(sheet);
+    } else {
+        qCWarning(js_console) << "Failed to open style sheet" << PathUtils::resourcesPath() + "styles/console.qss";
     }
 
     connect(_ui->scrollArea->verticalScrollBar(), &QScrollBar::rangeChanged, this, &JSConsole::scrollToBottom);
@@ -349,7 +356,7 @@ void JSConsole::executeCommand(const QString& command) {
 
     _ui->promptTextEdit->setDisabled(true);
 
-    appendMessage(">", "<span style='" + COMMAND_STYLE + "'>" + command.toHtmlEscaped() + "</span>");
+    appendMessage("prompt", ">", "command", command.toHtmlEscaped());
 
     std::weak_ptr<ScriptManager> weakScriptManager = _scriptManager;
     auto consoleFileName = _consoleFileName;
@@ -390,22 +397,22 @@ void JSConsole::commandFinished() {
 
 void JSConsole::handleError(const QString& message, const QString& scriptName) {
     Q_UNUSED(scriptName);
-    appendMessage(GUTTER_ERROR, "<span style='" + RESULT_ERROR_STYLE + "'>" + message.toHtmlEscaped() + "</span>");
+    appendMessage("error", "X", "error", message.toHtmlEscaped());
 }
 
 void JSConsole::handlePrint(const QString& message, const QString& scriptName) {
     Q_UNUSED(scriptName);
-    appendMessage("", message);
+    appendMessage("print", "", message);
 }
 
 void JSConsole::handleInfo(const QString& message, const QString& scriptName) {
     Q_UNUSED(scriptName);
-    appendMessage("", "<span style='" + RESULT_INFO_STYLE + "'>" + message.toHtmlEscaped() + "</span>");
+    appendMessage("info", "", "<span style='" + RESULT_INFO_STYLE + "'>" + message.toHtmlEscaped() + "</span>");
 }
 
 void JSConsole::handleWarning(const QString& message, const QString& scriptName) {
     Q_UNUSED(scriptName);
-    appendMessage("", "<span style='" + RESULT_WARNING_STYLE + "'>" + message.toHtmlEscaped() + "</span>");
+    appendMessage("warning", "", "<span style='" + RESULT_WARNING_STYLE + "'>" + message.toHtmlEscaped() + "</span>");
 }
 
 void JSConsole::mouseReleaseEvent(QMouseEvent* event) {
@@ -579,8 +586,10 @@ void JSConsole::scrollToBottom() {
     scrollBar->setValue(scrollBar->maximum());
 }
 
-void JSConsole::appendMessage(const QString& gutter, const QString& message) {
+void JSConsole::appendMessage( const QString &gutterType, const QString& gutter,const QString &messageType, const QString& message ) {
     QWidget* logLine = new QWidget(_ui->logArea);
+    logLine->setObjectName("logLine");
+
     QHBoxLayout* layout = new QHBoxLayout(logLine);
     layout->setMargin(0);
     layout->setSpacing(4);
@@ -588,12 +597,16 @@ void JSConsole::appendMessage(const QString& gutter, const QString& message) {
     QLabel* gutterLabel = new QLabel(logLine);
     QLabel* messageLabel = new QLabel(logLine);
 
+    gutterLabel->setProperty("gutterType", gutterType)
+    gutterLabel->setObjectName("promptGutterLabel");
+
+    messageLabel->setProperty("messageType", messageType);
+    messageLabel->setObjectName("promptMessageLabel");
+
+
     gutterLabel->setFixedWidth(16);
     gutterLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     messageLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-
-    gutterLabel->setStyleSheet("font-size: 14px; font-family: Inconsolata, Lucida Console, Andale Mono, Monaco;");
-    messageLabel->setStyleSheet("font-size: 14px; font-family: Inconsolata, Lucida Console, Andale Mono, Monaco;");
 
     gutterLabel->setText(gutter);
     messageLabel->setText(message);

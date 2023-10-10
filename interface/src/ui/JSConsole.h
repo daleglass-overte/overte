@@ -21,8 +21,12 @@
 #include <QCompleter>
 #include <QtCore/QJsonArray>
 #include <ScriptValue.h>
+#include <QLoggingCategory>
 
 #include "ui_console.h"
+
+Q_DECLARE_LOGGING_CATEGORY(js_console)
+
 
 class QStandardItemModel;
 class ScriptManager;
@@ -65,7 +69,7 @@ private slots:
     void highlightedCompletion(const QModelIndex& completion);
 
 private:
-    void appendMessage(const QString& gutter, const QString& message);
+    void appendMessage( const QString &gutterType, const QString& gutter, const QString &messageType, const QString& message);
     void setToNextCommandInHistory();
     void setToPreviousCommandInHistory();
     void resetCurrentCommandHistory();

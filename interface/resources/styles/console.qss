@@ -1,15 +1,14 @@
 * {
-    font-family: Inconsolata, Lucida Console, Andale Mono, Monaco;
+    font-family: Source Code Pro, Liberation Mono, Inconsolata, Lucida Console, Andale Mono, Monaco;
     font-size: 14px;
+    color: #FF0000;
 }
 
 #promptTextEdit {
-    color: #425d72;
+    // color: #425d72;
+    color: #00FF00;
 }
 
-#promptTextEdit:!enabled {
-    color: #7f7f7f;
-}
 
 #promptGutterLabel {
     color: #a9bbc3;
@@ -17,4 +16,55 @@
 
 #promptGutterLabel:!enabled {
     color: #7f7f7f;
+}
+
+#promptMessageLabel {
+    color: #FFFFFF;
+}
+
+#promptTextEdit:!enabled {
+    color: #7f7f7f;
+}
+
+
+
+
+#jsDoc {
+    .code {
+        font-family: Consolas, Monaco, 'Andale Mono', monospace
+    }
+    pre, code {
+        display: inline;
+    }
+    .no-wrap {
+        white-space: nowrap;
+    }
+}
+
+*[gutterType="previousCommand"] {
+
+}
+
+*[gutterType="error"] {
+    color: #d13b22
+}
+
+*[messageType="command"] {
+    color: #266a9b;
+}
+
+*[messageType="success"] {
+    color: #677373;
+}
+
+*[messageType="info"] {
+    color: #223bd1;   
+}
+
+*[messageType="warning"] {
+    color: #999922;
+}
+
+*[messageType="error"] {
+    color: #d13b22;
 }

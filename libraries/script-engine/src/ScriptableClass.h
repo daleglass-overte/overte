@@ -3,6 +3,7 @@
 #include "ScriptContext.h"
 #include "ScriptValue.h"
 #include "shared/MiniPromises.h"
+#include "ScriptEngineCast.h"
 
 class ScriptEngine;
 using ScriptEnginePointer = std::shared_ptr<ScriptEngine>;
@@ -69,8 +70,8 @@ public:
      *
      * @param context
      */
-    void Scriptable::setContext(ScriptContextPointer context) {
-        scriptContextStore = context;
+    void setContext(ScriptContextPointer context) {
+        _context = context;
     }
 
     /**
@@ -120,7 +121,7 @@ public:
      *
      * @return ScriptContextPointer
      */
-    ScriptContextPointer Scriptable::context() const {
+    ScriptContextPointer context() const {
         return _context;
     }
 

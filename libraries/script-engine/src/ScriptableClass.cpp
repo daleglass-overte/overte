@@ -1,7 +1,10 @@
 #include "ScriptableClass.h"
+#include "ScriptEngine.h"
+
+#define JS_VERIFY(cond, error) { if (!this->jsVerify(cond, error)) { return; } }
 
 
-ScriptableClass::ScriptableClass(ScriptEngine *engine) : _engine(engine) {
+ScriptableClass::ScriptableClass(ScriptEnginePointer engine) : _engine(engine) {
     Q_ASSERT(engine != nullptr);
 }
 
@@ -32,8 +35,9 @@ Promise ScriptableClass::jsPromiseReady(Promise promise, const ScriptValue& scop
     if (!jsVerify(handler.isValid(), "jsPromiseReady -- invalid callback handler")) {
         return nullptr;
     }
-    Q_ASSERT(engine);
+
     auto scriptEngine = engine();
+    Q_ASSERT(scriptEngine);
     return promise->ready([this, handler, scriptEngine](QString error, QVariantMap result) {
         jsCallback(handler, scriptEngine->newValue(error), result);
     });
@@ -41,7 +45,7 @@ Promise ScriptableClass::jsPromiseReady(Promise promise, const ScriptValue& scop
 
 void ScriptableClass::jsCallback(const ScriptValue& handler,
                                          const ScriptValue& error, const ScriptValue& result) {
-    Q_ASSERT(engine);
+    Q_ASSERT(engine());
     //V8TODO: which kind of script context guard needs to be used here?
     ScriptContextGuard scriptContextGuard(engine()->currentContext());
     auto errorValue = !error.toBool() ? engine()->nullValue() : error;
@@ -53,8 +57,9 @@ void ScriptableClass::jsCallback(const ScriptValue& handler,
 
 void ScriptableClass::jsCallback(const ScriptValue& handler,
                                          const ScriptValue& error, const QVariantMap& result) {
-    Q_ASSERT(handler.engine());
+
     auto engine = handler.engine();
+    Q_ASSERT(engine);
 
     jsCallback(handler, error, engine->toScriptValue(result));
 }

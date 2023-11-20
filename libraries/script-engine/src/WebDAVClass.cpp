@@ -14,8 +14,8 @@
 #include "ScriptEngine.h"
 #include "shared/MiniPromises.h"
 
-WebDAVClass::WebDAVClass(ScriptEngine* engine) :
-    _engine(engine) {
+WebDAVClass::WebDAVClass(ScriptEnginePointer engine) :
+    ScriptableClass(engine) {
 
 }
 
@@ -24,7 +24,7 @@ WebDAVClass::~WebDAVClass() {
 }
 
 
-ScriptValue WebDAVClass::constructor(ScriptContext* context, ScriptEngine* engine) {
+ScriptValue WebDAVClass::constructor(ScriptContextPointer context, ScriptEnginePointer engine) {
     qCDebug(scriptengine)  << "Created WebDAV";
     return engine->newQObject(new WebDAVClass(engine), ScriptEngine::ScriptOwnership);
 }

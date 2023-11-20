@@ -1284,6 +1284,43 @@ ScriptValue ScriptEngineV8::newFunction(ScriptEngine::FunctionSignature fun, int
     return ScriptValue(new ScriptValueV8Wrapper(this, std::move(result)));
 }
 
+ScriptValue ScriptEngineV8::newFunctionSmart(ScriptEngine::SmartPtrFunctionSignature fun, int length) {
+    //V8TODO is callee() used for anything?
+
+    v8::Locker locker(_v8Isolate);
+    v8::Isolate::Scope isolateScope(_v8Isolate);
+    v8::HandleScope handleScope(_v8Isolate);
+    v8::Context::Scope contextScope(getContext());
+
+    auto v8FunctionCallback = [](const v8::FunctionCallbackInfo<v8::Value>& info) {
+        //V8TODO: is using GetCurrentContext ok, or context wrapper needs to be added?
+        v8::HandleScope handleScope(info.GetIsolate());
+        auto context = info.GetIsolate()->GetCurrentContext();
+        v8::Context::Scope contextScope(context);
+        Q_ASSERT(info.Data()->IsObject());
+        auto object = v8::Local<v8::Object>::Cast(info.Data());
+        Q_ASSERT(object->InternalFieldCount() == 2);
+        auto function = reinterpret_cast<ScriptEngine::SmartPtrFunctionSignature>
+            (object->GetAlignedPointerFromInternalField(0));
+        ScriptEngineV8 *scriptEngine = reinterpret_cast<ScriptEngineV8*>
+            (object->GetAlignedPointerFromInternalField(1));
+        ContextScopeV8 contextScopeV8(scriptEngine);
+        ScriptContextV8Wrapper scriptContext(scriptEngine, &info, scriptEngine->getContext(), scriptEngine->currentContext()->parentContext());
+        ScriptContextGuard scriptContextGuard(&scriptContext);
+        ScriptValue result = function(&scriptContext, scriptEngine);
+        ScriptValueV8Wrapper* unwrapped = ScriptValueV8Wrapper::unwrap(result);
+        if (unwrapped) {
+            info.GetReturnValue().Set(unwrapped->toV8Value().constGet());
+        }
+    };
+    auto functionDataTemplate = getFunctionDataTemplate();
+    auto functionData = functionDataTemplate->NewInstance(getContext()).ToLocalChecked();
+    functionData->SetAlignedPointerInInternalField(0, reinterpret_cast<void*>(fun));
+    functionData->SetAlignedPointerInInternalField(1, reinterpret_cast<void*>(this));
+    auto v8Function = v8::Function::New(getContext(), v8FunctionCallback, functionData, length).ToLocalChecked();
+    V8ScriptValue result(this, v8Function);
+    return ScriptValue(new ScriptValueV8Wrapper(this, std::move(result)));
+}
 //V8TODO
 void ScriptEngineV8::setObjectName(const QString& name) {
     QObject::setObjectName(name);

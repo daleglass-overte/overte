@@ -90,6 +90,7 @@ public:  // ScriptEngine implementation
     virtual ScriptValue newArray(uint length = 0) override;
     virtual ScriptValue newArrayBuffer(const QByteArray& message) override;
     virtual ScriptValue newFunction(ScriptEngine::FunctionSignature fun, int length = 0) override;
+    virtual ScriptValue newFunctionSmart(ScriptEngine::SmartPtrFunctionSignature fun, int length = 0) override;
     virtual ScriptValue newObject() override;
     virtual ScriptValue newMethod(QObject* object, V8ScriptValue lifetime,
                                const QList<QMetaMethod>& metas, int numMaxParams);

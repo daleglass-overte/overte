@@ -25,6 +25,7 @@
 
 #include "ScriptValue.h"
 #include "ScriptException.h"
+#include "ScriptContext.h"
 
 // These are used for debugging memory leaks caused by persistent handles
 //#define OVERTE_V8_MEMORY_DEBUG
@@ -97,6 +98,7 @@ public:
     }
 
     typedef ScriptValue (*FunctionSignature)(ScriptContext*, ScriptEngine*);
+    typedef ScriptValue (*SmartPtrFunctionSignature)(ScriptContextPointer, ScriptEnginePointer);
     typedef ScriptValue (*MarshalFunction)(ScriptEngine*, const void*);
     typedef bool (*DemarshalFunction)(const ScriptValue&, QVariant &dest);
 
@@ -294,6 +296,10 @@ public:
     virtual ScriptValue newArray(uint length = 0) = 0;
     virtual ScriptValue newArrayBuffer(const QByteArray& message) = 0;
     virtual ScriptValue newFunction(FunctionSignature fun, int length = 0) {
+        Q_ASSERT(false);
+        return ScriptValue();
+    }
+    virtual ScriptValue newFunctionSmart(SmartPtrFunctionSignature fun, int length = 0) {
         Q_ASSERT(false);
         return ScriptValue();
     }

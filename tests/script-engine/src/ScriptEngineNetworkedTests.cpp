@@ -183,3 +183,35 @@ void ScriptEngineNetworkedTests::testRequireInfinite() {
 
     QVERIFY(errors.contains("Maximum call stack size exceeded"));
 }
+
+
+void ScriptEngineNetworkedTests::testWebDAV() {
+    auto sm = makeManager(
+        "print(\"Starting\");\n"
+        "dav = new WebDAV();\n"
+        "dav.setURL(\"https://vircadia-storage.daleglass.dev/\");\n"
+        "dav.get(\"/youtube/SHA256SUMS\", function(foo) { print(JSON.stringify(foo)) });\n"
+        "Script.stop(true);", "testDAV.js");
+    QString printed;
+
+
+
+    QVERIFY(!sm->isRunning());
+    QVERIFY(!sm->isStopped());
+    QVERIFY(!sm->isFinished());
+
+    connect(sm.get(), &ScriptManager::printedMessage, [&printed](const QString& message, const QString& engineName){
+        printed.append(message);
+        qInfo() << "MSG: " << message;
+    });
+
+
+    qInfo() << "About to run script";
+    sm->run();
+
+    QVERIFY(!sm->isRunning());
+    QVERIFY(!sm->isStopped());
+    QVERIFY(sm->isFinished());
+
+    QVERIFY(printed.contains("Maximum call stack size exceeded"));
+}

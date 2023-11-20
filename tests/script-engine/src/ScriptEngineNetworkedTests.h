@@ -28,6 +28,7 @@ private slots:
     void initTestCase();
     void testRequire();
     void testRequireInfinite();
+    void testWebDAV();
 
 
 private:

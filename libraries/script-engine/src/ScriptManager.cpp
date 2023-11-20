@@ -729,7 +729,7 @@ void ScriptManager::init() {
         ScriptValue webSocketConstructorValue = scriptEngine->newFunction(WebSocketClass::constructor);
         scriptEngine->globalObject().setProperty("WebSocket", webSocketConstructorValue);
 
-        ScriptValue webdavConstructorValue = scriptEngine->newFunction(WebDAVClass::constructor);
+        ScriptValue webdavConstructorValue = scriptEngine->newFunctionSmart(WebDAVClass::constructor);
         scriptEngine->globalObject().setProperty("WebDAV", webdavConstructorValue);
     }
 

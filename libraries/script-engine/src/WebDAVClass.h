@@ -17,21 +17,21 @@
 
 #include <QObject>
 #include <QNetworkRequest>
-#include "Scriptable.h"
 #include "ScriptValue.h"
+#include "ScriptableClass.h"
 
 #include <qwebdavlib/qwebdav.h>
 #include <qwebdavlib/qwebdavitem.h>
 #include <qwebdavlib/qwebdavdirparser.h>
 
 
-class WebDAVClass : public QObject, public Scriptable {
+class WebDAVClass : public QObject, public ScriptableClass {
     Q_OBJECT
 public:
-    WebDAVClass(ScriptEngine* engine);
+    WebDAVClass(ScriptEnginePointer engine);
     ~WebDAVClass();
 
-    static ScriptValue constructor(ScriptContext* context, ScriptEngine* engine);
+    static ScriptValue constructor(ScriptContextPointer context, ScriptEnginePointer engine);
 
 public slots:
     void setURL(const QUrl &url);

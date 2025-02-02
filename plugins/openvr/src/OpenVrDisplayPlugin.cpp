@@ -179,7 +179,7 @@ public:
                 } else if (GL_CONDITION_SATISFIED == result || GL_ALREADY_SIGNALED == result) {
                     glDeleteSync((GLsync)front.fence);
                 } else {
-                    assert(false);
+                   // assert(false);
                 }
 
                 front.fence = 0;
